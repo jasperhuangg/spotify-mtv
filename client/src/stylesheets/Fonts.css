@@ -1,0 +1,44 @@
+@font-face {
+  font-family: Circular-Bold;
+  src: url(../assets/circular_font/circular-bold.otf);
+}
+
+@font-face {
+  font-family: Circular;
+  src: url(../assets/circular_font/circular-book.otf);
+}
+
+@font-face {
+  font-family: Proxima-Nova;
+  src: url(../assets/proxima-nova-font/ProximaNova.otf);
+}
+
+@font-face {
+  font-family: Proxima-Nova-Bold;
+  src: url(../assets/proxima-nova-font/ProximaNovaBold.otf);
+}
+
+.no-select {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.spotify-header-white {
+  font-family: Circular-Bold;
+  color: white;
+}
+
+.spotify-body-white {
+  font-family: Circular;
+  color: white;
+}
+
+.spotify-body-grey {
+  font-family: Circular;
+  color: rgb(179, 179, 179);
+}

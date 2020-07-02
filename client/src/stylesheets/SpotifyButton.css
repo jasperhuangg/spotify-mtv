@@ -1,0 +1,25 @@
+.spotify-button-green {
+  background-color: rgb(42, 184, 89);
+  color: white;
+  font-family: Proxima-Nova-Bold;
+  letter-spacing: 3px;
+  transition: 0.1s ease;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 70px;
+  padding-right: 70px;
+  border-radius: 50px;
+}
+
+.spotify-button-green:hover {
+  transition: 0.1s ease;
+  color: white;
+  background-color: rgb(48, 213, 102);
+  transform: scale(1.04, 1.04);
+}
+
+.spotify-button-green:active {
+  transition: 0.1s ease;
+  filter: brightness(70%);
+  transform: scale(1, 1);
+}

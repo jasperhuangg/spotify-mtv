@@ -1,0 +1,11 @@
+Description:
+- Spotify listening metrics for music videos. Discover music in new ways, and dive deeper into the music you love on Spotify.
+
+Categories:
+- Recently played
+- Your top artists
+    - Display a video from each of the user's top 10 artists on spotify, sorted by popularity on Youtube
+- Playlists
+    - a sidebar tab for each of the user's playlists
+- Suggestions
+    - suggested videos screen
