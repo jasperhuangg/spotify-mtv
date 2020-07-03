@@ -1,4 +1,20 @@
 .search-bar {
   border-radius: 50px !important;
   border: 0;
+  font-family: Circular;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 30px;
+  width: 50%;
+  min-width: 350px;
+  background-image: url("../assets/search.svg");
+  background-repeat: no-repeat;
+  background-size: 4%;
+  background-position: 3% 50%;
+}
+
+.search-bar:focus {
+  border: solid 3px rgb(42, 184, 89);
+  box-sizing: border-box;
+  /* transition: 0.05s ease; */
 }

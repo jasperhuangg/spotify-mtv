@@ -43,14 +43,6 @@ export default class App extends Component<{}, AppState> {
       .then((authURL) => (window.location.href = authURL));
   }
 
-  checkLoggedIn() {
-    const cookies = new Cookies();
-    if (cookies.get("spotifyMTVLoggedIn")) {
-      this.setState({ loggedIn: true });
-      cookies.remove("spotifyMTVLoggedIn");
-    }
-  }
-
   componentDidMount() {
     const cookies = new Cookies();
 
@@ -59,6 +51,13 @@ export default class App extends Component<{}, AppState> {
       this.setState({
         accessToken: cookies.get("spotifyMTVAccessToken"),
       });
+      const url =
+        "http://localhost:9000/mtvApi/getDisplayName?accessToken=" +
+        cookies.get("spotifyMTVAccessToken");
+
+      fetch(url)
+        .then((res) => res.text())
+        .then((res) => console.log(res));
       cookies.remove("spotifyMTVAccessToken"); // remove it from the cookies (later will hash cookie name instead of deleting it so other sites can't retrieve it)
     } else {
       // obtain the authorization code from the URL (after calling /login)
@@ -90,6 +89,15 @@ export default class App extends Component<{}, AppState> {
       this.state.accessToken;
     fetch(url)
       .then((res) => res.text())
+      .then((res) => console.log(res));
+  }
+
+  testYoutubeApi() {
+    const url =
+      "http://localhost:9000/mtvApi/getRecentlyPlayed?accessToken=" +
+      this.state.accessToken;
+    fetch(url)
+      .then((res) => res.json())
       .then((res) => console.log(res));
   }
 
@@ -163,13 +171,15 @@ export default class App extends Component<{}, AppState> {
     if (this.state.accessToken.length)
       return (
         <>
-          <div className="container-fluid">
-            <button
-              className="btn spotify-button-green m-5"
-              onClick={() => this.logDisplayName()}
-            >
-              LOG DISPLAY NAME
-            </button>
+          <div className="container-fluid p-0">
+            <div className="text-center">
+              <button
+                className="btn spotify-button-green m-5"
+                onClick={() => this.testYoutubeApi()}
+              >
+                TEST YOUTUBE API
+              </button>
+            </div>
             <Navbar videos={testVideos} />
             <Main title={this.state.currentScreen} videos={testVideos} />
           </div>

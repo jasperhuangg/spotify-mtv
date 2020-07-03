@@ -27,10 +27,11 @@ export default class SearchBar extends Component<
     return (
       <>
         <input
-          className="form-control search-bar"
+          className="form-control search-bar spotify-body-black"
           onChange={(e) =>
             this.setState({ searchInput: e.currentTarget.value })
           }
+          placeholder="Search"
         />
         <SearchSuggestions
           videos={this.props.videos}

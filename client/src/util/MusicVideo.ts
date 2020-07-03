@@ -3,20 +3,20 @@ export default class MusicVideo {
   title: string;
   artist: string;
   album: string;
-  videoURI: string;
+  embedHTML: string;
 
   constructor(
     thumbnailURI: string,
     title: string,
     artist: string,
     album: string,
-    videoURI: string
+    embedHTML: string
   ) {
     this.thumbnailURI = thumbnailURI;
     this.title = title;
     this.artist = artist;
     this.album = album;
-    this.videoURI = videoURI;
+    this.embedHTML = embedHTML;
   }
 
   // helper method for debugging
@@ -30,8 +30,8 @@ export default class MusicVideo {
       this.artist,
       "thumbnail URI: ",
       this.thumbnailURI,
-      "video URI",
-      this.videoURI
+      "embed HTML",
+      this.embedHTML
     );
   }
 }

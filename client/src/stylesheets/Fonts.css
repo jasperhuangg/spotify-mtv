@@ -42,3 +42,29 @@
   font-family: Circular;
   color: rgb(179, 179, 179);
 }
+
+.spotify-body-black {
+  font-family: Circular;
+  color: rgb(18, 18, 18);
+}
+
+.fade-in-short {
+  animation-name: fade;
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
+}
+
+.fade-in-long {
+  animation-name: fade;
+  animation-duration: 3s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

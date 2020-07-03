@@ -32,9 +32,13 @@ export default class Main extends Component<MainProps, MainState> {
       <>
         <div className="container-fluid">
           <div
-            className="spotify-header-white py-3 no-select"
+            className="spotify-header-white pt-2 pb-4 mt-4 no-select"
             style={{
-              fontSize: "50px",
+              fontSize: "40px",
+              backgroundColor: "rgba(24, 24, 24, 0.97)",
+              zIndex: 1000,
+              position: "sticky",
+              top: 70,
             }}
           >
             {this.props.title}

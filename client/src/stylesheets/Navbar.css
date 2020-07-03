@@ -1,0 +1,17 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  background-color: rgb(37, 37, 37);
+  z-index: 1000;
+  border-bottom: solid 1px rgb(24, 24, 24);
+}
+
+.navbar-sidebar-toggle {
+  transition: 0.2s ease;
+}
+
+.navbar-sidebar-toggle:hover {
+  transition: 0.2s ease;
+  cursor: pointer;
+  color: white !important;
+}

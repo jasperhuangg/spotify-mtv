@@ -29,15 +29,15 @@ export default function VideoTile({ video }: VideoTileProps) {
           <div
             className="thumbnail-wrapper"
             style={{
-              width: "266.66px",
-              height: "150px",
+              width: "284.44px",
+              height: "160px",
             }}
           >
             <img
               className="thumbnail"
               style={{
-                width: "533.33px",
-                height: "300px",
+                width: "284.44px",
+                height: "160px",
               }}
               src={video.thumbnailURI}
               alt={video.title}
@@ -46,7 +46,7 @@ export default function VideoTile({ video }: VideoTileProps) {
         </div>
         <div className="tile-info">
           <div
-            className="spotify-body-white tile-title no-select tile-text"
+            className="spotify-body-white tile-title no-select"
             style={{
               fontSize: "18px",
             }}
@@ -55,7 +55,7 @@ export default function VideoTile({ video }: VideoTileProps) {
           </div>
           {/* <div className="spotify-body-white">{video.album}</div> */}
           <div
-            className="spotify-body-grey no-select tile-text"
+            className="spotify-body-grey no-select tile-artist"
             style={{
               fontSize: "14px",
             }}

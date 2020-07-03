@@ -16,17 +16,21 @@ export default function Login({ login }: LoginProps) {
     >
       <div className="text-center">
         <div
-          className="spotify-header-white text-center no-select"
+          className="spotify-header-white text-center no-select fade-in-short"
           style={{
             fontSize: "75px",
+            opacity: 0,
           }}
         >
           Spotify MTV
         </div>
         <div>
           <button
-            className="btn spotify-button-green m-5"
+            className="btn spotify-button-green m-5 fade-in-long"
             onClick={() => login()}
+            style={{
+              opacity: 0,
+            }}
           >
             LOG IN WITH SPOTIFY
           </button>
