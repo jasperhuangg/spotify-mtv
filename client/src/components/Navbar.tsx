@@ -16,7 +16,7 @@ export default function Navbar({ videos }: NavbarProps) {
     <div className="navbar">
       <div className="my-2 px-2 row align-items-center justify-content-center">
         <div className="col-3 row justify-content-start">
-          <div className="col-2 h-100 p-0">
+          <div className="col-1 h-100 p-0">
             <i
               className="fa fa-bars navbar-sidebar-toggle"
               aria-hidden="true"
@@ -24,14 +24,16 @@ export default function Navbar({ videos }: NavbarProps) {
                 fontSize: "22px",
                 color: "rgb(179, 179, 179)",
                 marginTop: "9px",
+                minWidth: "30px",
               }}
             ></i>
           </div>
           <div
-            className="col-5 spotify-header-white no-select"
+            className="col-5 text-right spotify-header-white no-select"
             style={{
               fontSize: "25px",
               cursor: "pointer",
+              minWidth: "120px",
             }}
           >
             <img

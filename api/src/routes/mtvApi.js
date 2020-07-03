@@ -2,13 +2,16 @@ const express = require("express");
 const router = express.Router();
 const SpotifyWebApi = require("spotify-web-api-node");
 const { YoutubeDataAPI } = require("youtube-v3-api");
+const axios = require("axios");
 
 // import MusicVideo from "../util/MusicVideo";
 
 const spotify_client_id = "edf3a6ab80054effae577fe71ce188d5";
 const spotify_client_secret = "c71e49ea792e4dc69b0e4f8cee46903e";
 
-const youtube_api_key = "AIzaSyBV0KCBnG8H3QRUq6SN1R1YAZXyfg8vnGA";
+// const youtube_api_key = "AIzaSyBV0KCBnG8H3QRUq6SN1R1YAZXyfg8vnGA";
+// const youtube_api_key = "AIzaSyCAmAAMTILENjy9jpwAfHwbGYvQJAY7ul4";
+const youtube_api_key = "AIzaSyDkYL0oxWH81vp0ZzcIDgV4NaYGKO9sL10";
 const youtubeApi = new YoutubeDataAPI(youtube_api_key);
 
 const scopes = [
@@ -68,34 +71,6 @@ router.get("/getDisplayName", (req, res) => {
     .catch((err) => console.error(err));
 });
 
-router.get("/testYoutubeApi", (req, res) => {
-  const search = req.query.search;
-  console.log("search: " + search);
-  var searches = [
-    "young thug",
-    "lil uzi vert",
-    "future",
-    "rl grime",
-    "higher brothers",
-  ];
-
-  var requests = searches.map((search) => youtubeApi.searchAll(search, 25));
-
-  var results = [];
-
-  let process = (prom) => {
-    prom.then();
-  };
-
-  Promise.all(requests)
-    .then((responses) => {
-      res.send(responses);
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-});
-
 router.get("/getRecentlyPlayed", (req, res) => {
   // return an array of MusicVideo objects of the user's recently played songs
   const accessToken = req.query.accessToken;
@@ -103,7 +78,7 @@ router.get("/getRecentlyPlayed", (req, res) => {
   loggedInSpotifyApi.setAccessToken(accessToken);
   loggedInSpotifyApi
     .getMyRecentlyPlayedTracks({
-      limit: 50,
+      limit: 3,
     })
     .then((data) => {
       // once receiving the user's recently played tracks
@@ -127,9 +102,10 @@ router.get("/getRecentlyPlayed", (req, res) => {
           var counter = 0;
           responses.forEach((response) => {
             var spotifyTrackObj = recentlyPlayed[counter];
+
             counter++;
-            // parse the response into a MusicVideo object
-            // need to call Youtube Data API a second time to retrieve the player information
+            // parse each response into a MusicVideo object
+            // need to call Youtube Data API a second time to retrieve the player information using its ID
             var musicVideo = new MusicVideo(
               spotifyTrackObj.title,
               spotifyTrackObj.artist,
@@ -139,22 +115,22 @@ router.get("/getRecentlyPlayed", (req, res) => {
             var youtubePlayerPromise = musicVideo.getPlayerSearchPromise();
             musicVideos.push(musicVideo);
             youtubePlayerPromises.push(youtubePlayerPromise);
-            Promise.all(youtubePlayerPromises)
-              .then((youtubePlayerResponses) => {
-                counter = 0;
-                youtubePlayerResponses.forEach((playerResponse) => {
-                  console.log(playerResponse);
-                  const playerEmbedHTML =
-                    playerResponse.items[0].player.embedHtml;
-                  musicVideos[counter].embedHTML = playerEmbedHTML;
-                  counter++;
-                });
-                res.send(musicVideos);
-              })
-              .catch((err) => {
-                console.error(err);
-              });
           });
+          Promise.all(youtubePlayerPromises)
+            .then((youtubePlayerResponses) => {
+              counter = 0;
+              youtubePlayerResponses.forEach((playerResponse) => {
+                const playerEmbedHTML =
+                  playerResponse.data.items[0].player.embedHtml;
+                musicVideos[counter].embedHTML = playerEmbedHTML;
+                counter++;
+              });
+
+              res.send(musicVideos);
+            })
+            .catch((err) => {
+              console.error(err);
+            });
         })
         .catch((err) => {
           console.error(err);
@@ -174,6 +150,11 @@ router.get("/topArtists", (req, res) => {
 router.get("/suggested", (req, res) => {
   // return an array of arrays of MusicVideo objects for each of the user's top artists
 });
+
+/**
+ * functions/class utilities
+ * TODO: figure out how to move to ../util folder and import
+ */
 
 function parseSpotifyResponse(responseTrack, recentlyPlayed) {
   const track = responseTrack.track;
@@ -212,7 +193,7 @@ class MusicVideo {
     this.title = title;
     this.artist = artist;
     this.album = album;
-    this.id = youtubeAPIResult.items[0].id; // TODO: update with crowdsourcing idea (store ids that work/don't work for a spotify track)
+    this.id = youtubeAPIResult.items[0].id.videoId; // TODO: update with crowdsourcing idea (store ids that work/don't work for a spotify track)
     this.embedHTML = "";
     this.thumbnailURI = youtubeAPIResult.items[0].snippet.thumbnails.medium.url;
     /**
@@ -220,8 +201,13 @@ class MusicVideo {
      */
   }
 
-  getPlayerSearchPromise() {
-    return youtubeApi.searchVideo(this.id);
+  async getPlayerSearchPromise() {
+    const url =
+      "https://www.googleapis.com/youtube/v3/videos?part=player&id=" +
+      this.id +
+      "&key=" +
+      youtube_api_key;
+    return await axios.get(url);
   }
 
   // helper method for debugging
