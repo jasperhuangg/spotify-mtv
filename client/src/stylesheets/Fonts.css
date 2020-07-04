@@ -30,17 +30,17 @@
 
 .spotify-header-white {
   font-family: Circular-Bold;
-  color: white;
+  color: rgb(232, 230, 227);
 }
 
 .spotify-body-white {
   font-family: Circular;
-  color: white;
+  color: rgb(232, 230, 227);
 }
 
 .spotify-body-grey {
   font-family: Circular;
-  color: rgb(179, 179, 179);
+  color: rgb(160, 158, 158);
 }
 
 .spotify-body-black {

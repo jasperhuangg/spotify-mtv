@@ -30,11 +30,11 @@ export default class Main extends Component<MainProps, MainState> {
   render() {
     return (
       <>
-        <div className="container-fluid">
+        <div className="container-fluid pl-4">
           <div
-            className="spotify-header-white pt-2 pb-4 mt-4 no-select"
+            className="spotify-header-white pt-3 pb-3 mt-4 no-select"
             style={{
-              fontSize: "40px",
+              fontSize: "30px",
               backgroundColor: "rgba(24, 24, 24, 0.97)",
               zIndex: 1000,
               position: "sticky",

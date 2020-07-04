@@ -1,13 +1,17 @@
 import * as React from "react";
 import { Component } from "react";
 import Cookies from "universal-cookie";
+import animateScrollTo from "animated-scroll-to";
 
 import Main from "./components/Main";
 import Navbar from "./components/Navbar";
 import Login from "./components/Login";
+import Sidebar from "./components/Sidebar";
+import OverlayShadow from "./components/OverlayShadow";
 
 import MusicVideo from "./util/MusicVideo";
 import URLParser from "./util/URLParser";
+import Playlist from "./util/Playlist";
 
 import "./stylesheets/Fonts.css";
 import "./stylesheets/App.css";
@@ -15,37 +19,31 @@ import "./stylesheets/App.css";
 const domain = "http://localhost:9000";
 
 type AppState = {
+  displayName: string;
   currentScreen: string;
   loggedIn: boolean;
-  recentlyPlayed: MusicVideo[];
   accessToken: string;
+  recentlyPlayed: Object[];
+  playlists: { [id: string]: Playlist };
+  sidebarShowing: boolean;
 };
 
 export default class App extends Component<{}, AppState> {
   state: AppState = {
-    currentScreen: "Recently Played",
+    displayName: "",
+    currentScreen: "Home",
     loggedIn: false,
-    recentlyPlayed: [],
     accessToken: "",
+    recentlyPlayed: [],
+    playlists: {},
+    sidebarShowing: false,
   };
 
-  testApi() {
-    const url = "http://localhost:9000/testApi";
-    fetch(url)
-      .then((res) => res.text())
-      .then((res) => console.log(res));
-  }
-
-  login() {
-    const url = domain + "/mtvApi/login";
-    fetch(url)
-      .then((authURL) => authURL.text())
-      .then((authURL) => (window.location.href = authURL));
-  }
-
   componentDidMount() {
+    /**
+     * ----------------------------------------------Authorization Flow----------------------------------------------
+     */
     const cookies = new Cookies();
-
     // if we were redirected from /callback (obtained an accessToken)
     if (cookies.get("spotifyMTVAccessToken") !== undefined) {
       this.setState({
@@ -57,8 +55,9 @@ export default class App extends Component<{}, AppState> {
 
       fetch(url)
         .then((res) => res.text())
-        .then((res) => console.log(res));
-      cookies.remove("spotifyMTVAccessToken"); // remove it from the cookies (later will hash cookie name instead of deleting it so other sites can't retrieve it)
+        .then((res) => this.setState({ displayName: res }));
+      // remove it from the cookies (later will hash cookie name instead of deleting it so other sites can't retrieve it)
+      cookies.remove("spotifyMTVAccessToken");
     } else {
       // obtain the authorization code from the URL (after calling /login)
       const url = window.location.href;
@@ -74,31 +73,105 @@ export default class App extends Component<{}, AppState> {
           });
       }
     }
+    /**
+     * ---------------------------------------------------------------------------------------------------------------
+     */
   }
 
-  componentDidUpdate() {
-    if (this.state.recentlyPlayed.length === 0 && this.state.loggedIn) {
-      // request all of the user's playlists, top artists, and recently played
-    }
+  /**
+   * Calls the login endpoint to obtain an authorization URL (which will return an auth code).
+   */
+  login() {
+    const url = domain + "/mtvApi/login";
+    fetch(url)
+      .then((authURL) => authURL.text())
+      .then((authURL) => (window.location.href = authURL));
   }
 
-  // test to make sure server can handle multiple users
-  logDisplayName() {
+  /**
+   * Gets the user's Spotify display name.
+   */
+  getDisplayName() {
     const url =
-      "http://localhost:9000/mtvApi/getDisplayName?accessToken=" +
-      this.state.accessToken;
+      domain + "/mtvApi/getDisplayName?accessToken=" + this.state.accessToken;
     fetch(url)
       .then((res) => res.text())
-      .then((res) => console.log(res));
+      .then((res) => this.setState({ displayName: res }));
   }
 
-  testYoutubeApi() {
+  /**
+   * Gets an array of music videos for the user's recently played tracks on Spotify.
+   */
+  getRecentlyPlayed() {
     const url =
-      "http://localhost:9000/mtvApi/getRecentlyPlayed?accessToken=" +
+      domain +
+      "/mtvApi/getRecentlyPlayed?accessToken=" +
       this.state.accessToken;
     fetch(url)
       .then((res) => res.json())
-      .then((res) => console.log(res));
+      .then((res) => this.setState({ recentlyPlayed: res }));
+  }
+
+  /**
+   * Gets a dictionary of ```[id]: Playlist``` for each of the user's public playlists on Spotify.
+   */
+  getPlaylists() {
+    const url =
+      domain + "/mtvApi/getPlaylists?accessToken=" + this.state.accessToken;
+    fetch(url)
+      .then((res) => res.json())
+      .then((res) => this.setState({ playlists: res }));
+  }
+
+  /**
+   * Gets all of the music videos and updates state for playlist with ```id```.
+   */
+  getPlaylistVideos(id: string) {
+    const url = domain + "/mtvApi/getPlaylistVideos";
+
+    var playlists: { [id: string]: Playlist } = {};
+    Object.assign(playlists, this.state.playlists);
+    var tracks = playlists[id].tracks;
+
+    const body = {
+      tracks: tracks,
+    };
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        // update the playlist's music videos in state
+        playlists[id].musicVideos = res;
+        this.setState({
+          playlists: playlists,
+        });
+      });
+  }
+
+  /**
+   * Handles showing/hiding the sidebar.
+   */
+  toggleSidebar() {
+    this.setState({ sidebarShowing: !this.state.sidebarShowing });
+  }
+
+  /**
+   * Handles selecting a sidebar item.
+   */
+  selectSidebarItem(title: string, type: string) {
+    this.setState({ currentScreen: title });
+    setTimeout(() => {
+      this.setState({ sidebarShowing: false });
+      animateScrollTo([0, 0], {
+        maxDuration: 400,
+      });
+    }, 150);
   }
 
   render() {
@@ -166,25 +239,440 @@ export default class App extends Component<{}, AppState> {
         "High Off Life",
         ""
       ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Futsal Shuffle",
+        "Lil Uzi Vert",
+        "Eternal Atake",
+        ""
+      ),
+      new MusicVideo(
+        "no-photos.img",
+        "No Photos",
+        "Don Toliver",
+        "Heaven or Hell",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "RENT FREE",
+        "Russ",
+        "RENT FREE",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "QUARANTINE CLEAN",
+        "Turbo, Gunna, Young Thug",
+        "QUARANTINE CLEAN",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Bored In The House",
+        "Tyga, Curtis Roach",
+        "Bored In The House",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "@ MEH",
+        "Playboi Carti",
+        "@ MEH",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "ALASKA",
+        "BROCKHAMPTON",
+        "SATURATION III",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Jersey",
+        "Future",
+        "What A Time To Be Alive",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "All Bad",
+        "Future, Lil Uzi Vert",
+        "High Off Life",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Futsal Shuffle",
+        "Lil Uzi Vert",
+        "Eternal Atake",
+        ""
+      ),
+      new MusicVideo(
+        "no-photos.img",
+        "No Photos",
+        "Don Toliver",
+        "Heaven or Hell",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "RENT FREE",
+        "Russ",
+        "RENT FREE",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "QUARANTINE CLEAN",
+        "Turbo, Gunna, Young Thug",
+        "QUARANTINE CLEAN",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Bored In The House",
+        "Tyga, Curtis Roach",
+        "Bored In The House",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "@ MEH",
+        "Playboi Carti",
+        "@ MEH",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "ALASKA",
+        "BROCKHAMPTON",
+        "SATURATION III",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Jersey",
+        "Future",
+        "What A Time To Be Alive",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "All Bad",
+        "Future, Lil Uzi Vert",
+        "High Off Life",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Futsal Shuffle",
+        "Lil Uzi Vert",
+        "Eternal Atake",
+        ""
+      ),
+      new MusicVideo(
+        "no-photos.img",
+        "No Photos",
+        "Don Toliver",
+        "Heaven or Hell",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "RENT FREE",
+        "Russ",
+        "RENT FREE",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "QUARANTINE CLEAN",
+        "Turbo, Gunna, Young Thug",
+        "QUARANTINE CLEAN",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Bored In The House",
+        "Tyga, Curtis Roach",
+        "Bored In The House",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "@ MEH",
+        "Playboi Carti",
+        "@ MEH",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "ALASKA",
+        "BROCKHAMPTON",
+        "SATURATION III",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Jersey",
+        "Future",
+        "What A Time To Be Alive",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "All Bad",
+        "Future, Lil Uzi Vert",
+        "High Off Life",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Futsal Shuffle",
+        "Lil Uzi Vert",
+        "Eternal Atake",
+        ""
+      ),
+      new MusicVideo(
+        "no-photos.img",
+        "No Photos",
+        "Don Toliver",
+        "Heaven or Hell",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "RENT FREE",
+        "Russ",
+        "RENT FREE",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "QUARANTINE CLEAN",
+        "Turbo, Gunna, Young Thug",
+        "QUARANTINE CLEAN",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Bored In The House",
+        "Tyga, Curtis Roach",
+        "Bored In The House",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "@ MEH",
+        "Playboi Carti",
+        "@ MEH",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "ALASKA",
+        "BROCKHAMPTON",
+        "SATURATION III",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Jersey",
+        "Future",
+        "What A Time To Be Alive",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "All Bad",
+        "Future, Lil Uzi Vert",
+        "High Off Life",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Futsal Shuffle",
+        "Lil Uzi Vert",
+        "Eternal Atake",
+        ""
+      ),
+      new MusicVideo(
+        "no-photos.img",
+        "No Photos",
+        "Don Toliver",
+        "Heaven or Hell",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "RENT FREE",
+        "Russ",
+        "RENT FREE",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "QUARANTINE CLEAN",
+        "Turbo, Gunna, Young Thug",
+        "QUARANTINE CLEAN",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Bored In The House",
+        "Tyga, Curtis Roach",
+        "Bored In The House",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "@ MEH",
+        "Playboi Carti",
+        "@ MEH",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "ALASKA",
+        "BROCKHAMPTON",
+        "SATURATION III",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Jersey",
+        "Future",
+        "What A Time To Be Alive",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "All Bad",
+        "Future, Lil Uzi Vert",
+        "High Off Life",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Futsal Shuffle",
+        "Lil Uzi Vert",
+        "Eternal Atake",
+        ""
+      ),
+      new MusicVideo(
+        "no-photos.img",
+        "No Photos",
+        "Don Toliver",
+        "Heaven or Hell",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "RENT FREE",
+        "Russ",
+        "RENT FREE",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "QUARANTINE CLEAN",
+        "Turbo, Gunna, Young Thug",
+        "QUARANTINE CLEAN",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Bored In The House",
+        "Tyga, Curtis Roach",
+        "Bored In The House",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "@ MEH",
+        "Playboi Carti",
+        "@ MEH",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "ALASKA",
+        "BROCKHAMPTON",
+        "SATURATION III",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "Jersey",
+        "Future",
+        "What A Time To Be Alive",
+        ""
+      ),
+      new MusicVideo(
+        "futsal-shuffle.img",
+        "All Bad",
+        "Future, Lil Uzi Vert",
+        "High Off Life",
+        ""
+      ),
     ];
 
+    // user has logged in, show the app
     if (this.state.accessToken.length)
       return (
         <>
           <div className="container-fluid p-0">
-            <div className="text-center">
+            {/*----------------------------------------------------test buttons--------------------------------------------------*/}
+
+            {/* <div id="test-buttons" className="text-center m-5">
               <button
-                className="btn spotify-button-green m-5"
-                onClick={() => this.testYoutubeApi()}
+                className="btn spotify-button-green"
+                onClick={() => this.getRecentlyPlayed()}
               >
-                TEST YOUTUBE API
+                GET RECENTLY PLAYED
               </button>
-            </div>
-            <Navbar videos={testVideos} />
+              <br />
+              <br />
+              <button
+                className="btn spotify-button-green"
+                onClick={() => this.getPlaylists()}
+              >
+                GET PLAYLISTS
+              </button>
+              <br />
+              <br />
+              <button
+                className="btn spotify-button-green"
+                onClick={() =>
+                  this.getPlaylistVideos(Object.keys(this.state.playlists)[0])
+                }
+              >
+                GET PLAYLIST VIDEOS
+              </button>
+            </div> */}
+
+            {/*-------------------------------------------------------------------------------------------------------------------*/}
+
+            <Navbar
+              videos={testVideos}
+              toggleSidebar={() => this.toggleSidebar()}
+            />
+            <Sidebar
+              currentScreen={this.state.currentScreen}
+              playlists={this.state.playlists}
+              displaying={this.state.sidebarShowing}
+              selectSidebarItem={(title: string, type: string) =>
+                this.selectSidebarItem(title, type)
+              }
+            />
+            <OverlayShadow displaying={this.state.sidebarShowing} />
             <Main title={this.state.currentScreen} videos={testVideos} />
           </div>
         </>
       );
+    // show the login screen
     else return <Login login={() => this.login()} />;
   }
 }

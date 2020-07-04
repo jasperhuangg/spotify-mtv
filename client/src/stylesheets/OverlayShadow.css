@@ -1,0 +1,16 @@
+#overlay-shadow {
+  pointer-events: none;
+  transition: 0.3s ease;
+  position: fixed;
+  top: 70px;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1500;
+  opacity: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.overlay-shadow-displaying {
+  opacity: 1 !important;
+  transition: 0.3s ease !important;
+}

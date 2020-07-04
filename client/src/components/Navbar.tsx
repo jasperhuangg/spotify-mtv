@@ -9,9 +9,10 @@ import logo from "../assets/spotify-logo.png";
 
 type NavbarProps = {
   videos: MusicVideo[];
+  toggleSidebar: () => void;
 };
 
-export default function Navbar({ videos }: NavbarProps) {
+export default function Navbar({ videos, toggleSidebar }: NavbarProps) {
   return (
     <div className="navbar">
       <div className="my-2 px-2 row align-items-center justify-content-center">
@@ -26,6 +27,7 @@ export default function Navbar({ videos }: NavbarProps) {
                 marginTop: "9px",
                 minWidth: "30px",
               }}
+              onClick={() => toggleSidebar()}
             ></i>
           </div>
           <div

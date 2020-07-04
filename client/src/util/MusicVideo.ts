@@ -19,7 +19,9 @@ export default class MusicVideo {
     this.embedHTML = embedHTML;
   }
 
-  // helper method for debugging
+  /**
+   * Prints music video contents.
+   */
   print() {
     console.log(
       "title:",

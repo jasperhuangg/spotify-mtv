@@ -1,9 +1,3 @@
-/**
- * Given a list of music videos and a string
- * returns a list of music videos whose title, artist, album
- * include any sequence of characters from the given string
- */
-
 import MusicVideo from "./MusicVideo";
 
 // cache validResults to prevent searching through all videos
@@ -11,6 +5,11 @@ import MusicVideo from "./MusicVideo";
 var lastSeenSearchInput = "";
 var validResults: MusicVideo[] = [];
 
+/**
+ * Returns search results given a list of MusicVideos and a search input
+ * @param   {[type]}  videos  The list of music videos to search in.
+ * @param   {[type]}  searchInput  The keywords used in the search.
+ */
 export default function KeywordParser(
   videos: MusicVideo[], // contains all of the songs in a user's Spotify playlists
   searchInput: string
@@ -18,7 +17,7 @@ export default function KeywordParser(
   searchInput = searchInput.toLowerCase();
 
   if (searchInput === "") {
-    console.log("empty search input");
+    // console.log("empty search input");
     validResults = [];
     lastSeenSearchInput = "";
     return [];

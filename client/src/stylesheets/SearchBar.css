@@ -11,10 +11,12 @@
   background-repeat: no-repeat;
   background-size: 4%;
   background-position: 3% 50%;
+  background-color: rgb(232, 230, 227);
 }
 
 .search-bar:focus {
-  border: solid 3px rgb(42, 184, 89);
+  border: solid 2.5px rgb(42, 184, 89);
   box-sizing: border-box;
+  width: 355px;
   /* transition: 0.05s ease; */
 }
