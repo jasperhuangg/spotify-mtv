@@ -10,10 +10,10 @@ const spotify_client_id = "edf3a6ab80054effae577fe71ce188d5";
 const spotify_client_secret = "c71e49ea792e4dc69b0e4f8cee46903e";
 
 // Youtube API Keys:
-// const youtube_api_key = "AIzaSyBV0KCBnG8H3QRUq6SN1R1YAZXyfg8vnGA";
+const youtube_api_key = "AIzaSyBV0KCBnG8H3QRUq6SN1R1YAZXyfg8vnGA";
 // const youtube_api_key = "AIzaSyCAmAAMTILENjy9jpwAfHwbGYvQJAY7ul4";
 // const youtube_api_key = "AIzaSyDkYL0oxWH81vp0ZzcIDgV4NaYGKO9sL10";
-const youtube_api_key = "AIzaSyAdtBLs2ZSHNYKwS5UXdOpivz7eUue8TJg";
+// const youtube_api_key = "AIzaSyAdtBLs2ZSHNYKwS5UXdOpivz7eUue8TJg";
 
 const youtubeApi = new YoutubeDataAPI(youtube_api_key);
 
@@ -21,6 +21,7 @@ const scopes = [
   "user-read-private",
   "user-read-email",
   "user-read-recently-played",
+  "user-top-read",
   // "playlist-read-private",
 ];
 const redirect_uri = process.env.REDIRECT_URI || "http://localhost:3000";
@@ -102,7 +103,12 @@ router.get("/getRecentlyPlayed", (req, res) => {
       var recentlyPlayed = [];
       data.body.items.forEach((track) => {
         // don't add duplicate tracks
-        recentlyPlayed = parseSpotifyResponse(track, recentlyPlayed, true);
+        recentlyPlayed = parseSpotifyResponse(
+          track,
+          recentlyPlayed,
+          true,
+          "playlists"
+        );
       });
       convertToYoutubeAndSend(recentlyPlayed, res);
     })
@@ -149,10 +155,15 @@ router.get("/getPlaylists", (req, res) => {
 
         // for each track in the playlist
         playlistTracksResponses.forEach((response) => {
-          var playlistID = playlistIDs[playlistCounter];
+          const playlistID = playlistIDs[playlistCounter];
           var tracksArr = playlists[playlistID].tracks;
           response.body.items.forEach((responseTrack) => {
-            tracksArr = parseSpotifyResponse(responseTrack, tracksArr, false);
+            tracksArr = parseSpotifyResponse(
+              responseTrack,
+              tracksArr,
+              false,
+              "playlists"
+            );
           });
           playlistCounter++;
         });
@@ -161,23 +172,85 @@ router.get("/getPlaylists", (req, res) => {
     });
 });
 
-router.post("/getPlaylistVideos", (req, res) => {
+/**
+ * Returns a list of MusicVideo objects given a list of Track objects.
+ */
+router.post("/getVideosFromTracks", (req, res) => {
   const tracks = req.body.tracks;
   convertToYoutubeAndSend(tracks, res);
 });
 
+/**
+ * returns an array of the user's top 10 artists on Spotify,
+ * each containing a list of the top 10 tracks for each artist
+ */
 router.get("/getTopArtists", (req, res) => {
-  // return an array of the user's top 5 artists,
-  // 10 tracks for each artist, first take them from the user's playlists
-  // leftovers are taken from top songs for each artist
+  const accessToken = req.query.accessToken;
+  const loggedInSpotifyApi = new SpotifyWebApi();
+  loggedInSpotifyApi.setAccessToken(accessToken);
+
+  const country = req.query.country;
+
+  loggedInSpotifyApi
+    .getMyTopArtists({
+      limit: 50,
+      time_range: "medium_term",
+    })
+    .then((data) => {
+      var artists = {};
+      var artistTracksRequests = [];
+
+      for (let i = 0; i < data.body.items.length; i++) {
+        const artist = data.body.items[i];
+        if (Object.keys(artists).length === 10) break;
+        // we only want artists that have a decent following (> 10000)
+        if (artist.followers.total >= 10000) {
+          const id = artist.id;
+          const artistObj = {
+            name: artist.name,
+            tracks: [],
+            musicVideos: [],
+          };
+          artists[id] = artistObj;
+          // make another request to the Spotify API to get the artist's top tracks
+          artistTracksRequests.push(
+            loggedInSpotifyApi.getArtistTopTracks(id, country)
+          );
+        }
+      }
+
+      var artistIDs = Object.keys(artists);
+
+      Promise.all(artistTracksRequests).then((artistTracksResponses) => {
+        var artistCounter = 0;
+
+        // for each of the artist's top tracks
+        artistTracksResponses.forEach((response) => {
+          const artistID = artistIDs[artistCounter];
+          var tracksArr = artists[artistID].tracks;
+
+          response.body.tracks.forEach((responseTrack) => {
+            tracksArr = parseSpotifyResponse(
+              responseTrack,
+              tracksArr,
+              false,
+              "artists"
+            );
+          });
+          artistCounter++;
+        });
+        res.send(artists);
+      });
+    })
+    .catch((err) => console.error(err));
 });
 
 router.get("/getTopArtistVideos", (req, res) => {});
 
-router.get("/suggested", (req, res) => {
-  // return an array of suggested videos for the user to watch
-  // this is likely going to be the home page
-});
+/**
+ * Returns an array of music videos for the user's top tracks on Spotify.
+ */
+router.get("/getHome", (req, res) => {});
 
 // -----------------------------------------------------------UTILITIES-----------------------------------------------------------
 
@@ -187,9 +260,17 @@ router.get("/suggested", (req, res) => {
  * @param   {[type]}  responseTrack       The track object in the Spotify API response
  * @param   {[type]}  arr                 The array to add the parsed trackObject into
  * @param   {[type]}  checkForDuplicates  Whether to check for duplicates before adding into arr
+ * @param   {[type]}  calledBy            Which endpoint is calling the parser function. (playlists/artists)
+
  */
-function parseSpotifyResponse(responseTrack, arr, checkForDuplicates) {
-  const track = responseTrack.track;
+function parseSpotifyResponse(
+  responseTrack,
+  arr,
+  checkForDuplicates,
+  calledBy
+) {
+  var track = responseTrack;
+  if (calledBy === "playlists") track = responseTrack.track;
 
   var artists = "";
 

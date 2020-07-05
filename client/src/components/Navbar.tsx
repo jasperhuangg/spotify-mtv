@@ -40,6 +40,7 @@ export default function Navbar({ videos, toggleSidebar }: NavbarProps) {
           >
             <img
               src={logo}
+              alt="Spotify Logo"
               style={{ width: "25px", height: "25px" }}
               draggable={false}
             />{" "}

@@ -1,5 +1,3 @@
-import { response } from "express";
-
 export default function SpotifyResponseTrackParser(responseTrack: any) {
   const track = responseTrack.track;
 

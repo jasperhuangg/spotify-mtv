@@ -3,12 +3,16 @@ import React from "react";
 import SidebarItem from "./SidebarItem";
 
 import Playlist from "../util/Playlist";
+import Artist from "../util/Artist";
 
 import "../stylesheets/Sidebar.css";
 
 type SidebarProps = {
   currentScreen: string;
+  // home
+  // recently played
   playlists: { [id: string]: Playlist };
+  topArtists: { [id: string]: Artist };
   displaying: boolean;
   selectSidebarItem: (title: string, type: string) => void;
 };
@@ -79,6 +83,22 @@ export default function Sidebar({
       />
       <SidebarItem
         title="Pop Smoke"
+        currentScreen={currentScreen}
+        type="Artist"
+        selectSidebarItem={(title: string, type: string) =>
+          selectSidebarItem(title, type)
+        }
+      />
+      <SidebarItem
+        title="BROCKHAMPTON"
+        currentScreen={currentScreen}
+        type="Artist"
+        selectSidebarItem={(title: string, type: string) =>
+          selectSidebarItem(title, type)
+        }
+      />
+      <SidebarItem
+        title="Excision"
         currentScreen={currentScreen}
         type="Artist"
         selectSidebarItem={(title: string, type: string) =>

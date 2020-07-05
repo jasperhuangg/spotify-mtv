@@ -1,3 +1,5 @@
+// TODO: update sidebar to use IDs (in case of duplicate artist/playlist names)
+
 import * as React from "react";
 import { Component } from "react";
 import Cookies from "universal-cookie";
@@ -12,6 +14,7 @@ import OverlayShadow from "./components/OverlayShadow";
 import MusicVideo from "./util/MusicVideo";
 import URLParser from "./util/URLParser";
 import Playlist from "./util/Playlist";
+import Artist from "./util/Artist";
 
 import "./stylesheets/Fonts.css";
 import "./stylesheets/App.css";
@@ -25,6 +28,7 @@ type AppState = {
   accessToken: string;
   recentlyPlayed: Object[];
   playlists: { [id: string]: Playlist };
+  topArtists: { [id: string]: Artist };
   sidebarShowing: boolean;
 };
 
@@ -36,12 +40,13 @@ export default class App extends Component<{}, AppState> {
     accessToken: "",
     recentlyPlayed: [],
     playlists: {},
+    topArtists: {},
     sidebarShowing: false,
   };
 
   componentDidMount() {
     /**
-     * ----------------------------------------------Authorization Flow----------------------------------------------
+     * ----------------------------------------------Authorization Flow---------------------------------------------------
      */
     const cookies = new Cookies();
     // if we were redirected from /callback (obtained an accessToken)
@@ -73,10 +78,11 @@ export default class App extends Component<{}, AppState> {
           });
       }
     }
-    /**
-     * ---------------------------------------------------------------------------------------------------------------
-     */
   }
+
+  /**
+   * ----------------------------------------------------Calls to back end-------------------------------------------------
+   */
 
   /**
    * Calls the login endpoint to obtain an authorization URL (which will return an auth code).
@@ -127,7 +133,7 @@ export default class App extends Component<{}, AppState> {
    * Gets all of the music videos and updates state for playlist with ```id```.
    */
   getPlaylistVideos(id: string) {
-    const url = domain + "/mtvApi/getPlaylistVideos";
+    const url = domain + "/mtvApi/getVideosFromTracks";
 
     var playlists: { [id: string]: Playlist } = {};
     Object.assign(playlists, this.state.playlists);
@@ -155,10 +161,86 @@ export default class App extends Component<{}, AppState> {
   }
 
   /**
+   * Gets a dictionary of ```[id]: Artist``` for each of the user's top artists on Spotify.
+   */
+  getTopArtists() {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        const geoLocationURL =
+          "http://api.geonames.org/countryCodeJSON?lat=" +
+          latitude +
+          "&lng=" +
+          longitude +
+          "&username=jasperhuangg";
+        fetch(geoLocationURL)
+          .then((res) => res.json())
+          .then((res) => {
+            const country = res.countryCode;
+            const url =
+              domain +
+              "/mtvApi/getTopArtists?accessToken=" +
+              this.state.accessToken +
+              "&country=" +
+              country;
+            fetch(url)
+              .then((res) => res.json())
+              .then((res) => {
+                console.log(Object.keys(res).length);
+                console.log(res);
+                this.setState({ topArtists: res });
+              });
+          });
+      },
+      (err) => console.error(err)
+    );
+  }
+
+  /**
+   * Gets all of the music videos and updates state for artist with ```id```.
+   */
+  getArtistVideos(id: string) {
+    const url = domain + "/mtvApi/getVideosFromTracks";
+
+    var topArtists: { [id: string]: Artist } = {};
+    Object.assign(topArtists, this.state.topArtists);
+    var tracks = topArtists[id].tracks;
+
+    const body = {
+      tracks: tracks,
+    };
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res);
+        // update the artist's music videos in state
+        topArtists[id].musicVideos = res;
+        this.setState({
+          topArtists: topArtists,
+        });
+      });
+  }
+
+  /**
+   * --------------------------------------------Util for Child Components-------------------------------------------------
+   */
+
+  /**
    * Handles showing/hiding the sidebar.
    */
   toggleSidebar() {
-    this.setState({ sidebarShowing: !this.state.sidebarShowing });
+    this.setState({
+      sidebarShowing: !this.state.sidebarShowing,
+    });
   }
 
   /**
@@ -629,27 +711,19 @@ export default class App extends Component<{}, AppState> {
             {/* <div id="test-buttons" className="text-center m-5">
               <button
                 className="btn spotify-button-green"
-                onClick={() => this.getRecentlyPlayed()}
+                onClick={() => this.getTopArtists()}
               >
-                GET RECENTLY PLAYED
-              </button>
-              <br />
-              <br />
-              <button
-                className="btn spotify-button-green"
-                onClick={() => this.getPlaylists()}
-              >
-                GET PLAYLISTS
+                GET TOP ARTISTS
               </button>
               <br />
               <br />
               <button
                 className="btn spotify-button-green"
                 onClick={() =>
-                  this.getPlaylistVideos(Object.keys(this.state.playlists)[0])
+                  this.getArtistVideos(Object.keys(this.state.topArtists)[0])
                 }
               >
-                GET PLAYLIST VIDEOS
+                GET ARTIST VIDEOS
               </button>
             </div> */}
 
@@ -662,6 +736,7 @@ export default class App extends Component<{}, AppState> {
             <Sidebar
               currentScreen={this.state.currentScreen}
               playlists={this.state.playlists}
+              topArtists={this.state.topArtists}
               displaying={this.state.sidebarShowing}
               selectSidebarItem={(title: string, type: string) =>
                 this.selectSidebarItem(title, type)

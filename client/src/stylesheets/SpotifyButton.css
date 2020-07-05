@@ -23,3 +23,7 @@
   filter: brightness(70%);
   transform: scale(1, 1);
 }
+
+.spotify-button-green-sm {
+  font-size: 14px;
+}
