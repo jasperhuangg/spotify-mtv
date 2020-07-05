@@ -4,14 +4,13 @@
   background-color: black;
   padding: 10px;
   margin-bottom: 10px;
+  border-radius: 7px;
 }
 
 .video-tile-wrapper {
   background-color: rgb(24, 24, 24);
-  border: solid 1px rgb(40, 40, 40);
   box-sizing: border-box;
-  padding: 10px;
-  width: 304.44px;
+  width: 284.44px;
   border-radius: 7px;
   margin-bottom: 15px;
   transition: 0.2s ease;
@@ -20,7 +19,7 @@
 .video-tile-wrapper:hover {
   cursor: pointer;
   transition: 0.2s ease;
-  background-color: rgb(40, 40, 40);
+  color: white;
 }
 
 .video-tile-wrapper:hover .tile-title {

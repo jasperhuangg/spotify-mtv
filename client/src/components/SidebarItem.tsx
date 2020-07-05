@@ -6,7 +6,7 @@ type SidebarItemProps = {
   title: string;
   currentScreen: string;
   type: string;
-  selectSidebarItem: (title: string, type: string) => void;
+  selectSidebarItem: () => void;
 };
 
 export default function SidebarItem({
@@ -25,10 +25,10 @@ export default function SidebarItem({
   return (
     <div
       className={
-        "sidebar-item spotify-body-white py-3 px-4" +
+        "sidebar-item spotify-body-grey py-3 px-4" +
         (title === currentScreen ? " sidebar-item-selected" : "")
       }
-      onClick={() => selectSidebarItem(title, type)}
+      onClick={() => selectSidebarItem()}
     >
       <i className={iconClasses + " mr-4"} />
       {title}

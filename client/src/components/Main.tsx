@@ -4,6 +4,7 @@ import MusicVideo from "../util/MusicVideo";
 import VideoTile from "./VideoTile";
 
 import "../stylesheets/Main.css";
+import "../stylesheets/Loader.css";
 
 type MainState = {
   title: string; // title of this main page

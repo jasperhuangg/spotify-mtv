@@ -6,20 +6,20 @@ import Playlist from "../util/Playlist";
 import Artist from "../util/Artist";
 
 import "../stylesheets/Sidebar.css";
+import MusicVideo from "../util/MusicVideo";
 
 type SidebarProps = {
   currentScreen: string;
-  // home
-  // recently played
   playlists: { [id: string]: Playlist };
   topArtists: { [id: string]: Artist };
   displaying: boolean;
-  selectSidebarItem: (title: string, type: string) => void;
+  selectSidebarItem: (title: string, type: string, itemID: string) => void;
 };
 
 export default function Sidebar({
   currentScreen,
   playlists,
+  topArtists,
   displaying,
   selectSidebarItem,
 }: SidebarProps) {
@@ -29,82 +29,46 @@ export default function Sidebar({
         title="Home"
         currentScreen={currentScreen}
         type="Home"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
+        selectSidebarItem={() => selectSidebarItem("Home", "Home", "")}
       />
       <SidebarItem
         title="Recently Played"
         currentScreen={currentScreen}
         type="Recently Played"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
+        selectSidebarItem={() =>
+          selectSidebarItem("Recently Played", "Recently Played", "")
         }
       />
-      <SidebarItem
-        title="ice"
-        currentScreen={currentScreen}
-        type="Playlist"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
-      />
-      <SidebarItem
-        title="yellow"
-        currentScreen={currentScreen}
-        type="Playlist"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
-      />
-      <SidebarItem
-        title="a very long playlist name"
-        currentScreen={currentScreen}
-        type="Playlist"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
-      />
-      <SidebarItem
-        title="Young Thug"
-        currentScreen={currentScreen}
-        type="Artist"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
-      />
-      <SidebarItem
-        title="RL Grime"
-        currentScreen={currentScreen}
-        type="Artist"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
-      />
-      <SidebarItem
-        title="Pop Smoke"
-        currentScreen={currentScreen}
-        type="Artist"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
-      />
-      <SidebarItem
-        title="BROCKHAMPTON"
-        currentScreen={currentScreen}
-        type="Artist"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
-      />
-      <SidebarItem
-        title="Excision"
-        currentScreen={currentScreen}
-        type="Artist"
-        selectSidebarItem={(title: string, type: string) =>
-          selectSidebarItem(title, type)
-        }
-      />
+      {Object.keys(playlists).map((playlistID, index) => {
+        return (
+          <SidebarItem
+            key={playlistID}
+            title={playlists[playlistID].name}
+            currentScreen={currentScreen}
+            type="Playlist"
+            selectSidebarItem={() =>
+              selectSidebarItem(
+                playlists[playlistID].name,
+                "Playlist",
+                playlistID
+              )
+            }
+          />
+        );
+      })}
+      {Object.keys(topArtists).map((artistID, index) => {
+        return (
+          <SidebarItem
+            key={artistID}
+            title={topArtists[artistID].name}
+            currentScreen={currentScreen}
+            type="Artist"
+            selectSidebarItem={() =>
+              selectSidebarItem(topArtists[artistID].name, "Artist", artistID)
+            }
+          />
+        );
+      })}
     </div>
   );
 }

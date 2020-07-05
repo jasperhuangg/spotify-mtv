@@ -10,10 +10,11 @@ const spotify_client_id = "edf3a6ab80054effae577fe71ce188d5";
 const spotify_client_secret = "c71e49ea792e4dc69b0e4f8cee46903e";
 
 // Youtube API Keys:
-const youtube_api_key = "AIzaSyBV0KCBnG8H3QRUq6SN1R1YAZXyfg8vnGA";
+// const youtube_api_key = "AIzaSyBV0KCBnG8H3QRUq6SN1R1YAZXyfg8vnGA";
 // const youtube_api_key = "AIzaSyCAmAAMTILENjy9jpwAfHwbGYvQJAY7ul4";
 // const youtube_api_key = "AIzaSyDkYL0oxWH81vp0ZzcIDgV4NaYGKO9sL10";
 // const youtube_api_key = "AIzaSyAdtBLs2ZSHNYKwS5UXdOpivz7eUue8TJg";
+const youtube_api_key = "AIzaSyDBZFBS57klOseen5DIq9Ei062M4aY17Kc";
 
 const youtubeApi = new YoutubeDataAPI(youtube_api_key);
 
@@ -95,7 +96,7 @@ router.get("/getRecentlyPlayed", (req, res) => {
   loggedInSpotifyApi.setAccessToken(accessToken);
   loggedInSpotifyApi
     .getMyRecentlyPlayedTracks({
-      limit: 50,
+      limit: 5, // 50
     })
     .then((data) => {
       // once receiving the user's recently played tracks
@@ -125,7 +126,7 @@ router.get("/getPlaylists", (req, res) => {
 
   loggedInSpotifyApi
     .getUserPlaylists({
-      limit: 50,
+      limit: 3, // 50
     })
     .then((data) => {
       var playlists = {};
@@ -202,7 +203,7 @@ router.get("/getTopArtists", (req, res) => {
 
       for (let i = 0; i < data.body.items.length; i++) {
         const artist = data.body.items[i];
-        if (Object.keys(artists).length === 10) break;
+        if (Object.keys(artists).length === 3) break; // 10
         // we only want artists that have a decent following (> 10000)
         if (artist.followers.total >= 10000) {
           const id = artist.id;
@@ -250,7 +251,25 @@ router.get("/getTopArtistVideos", (req, res) => {});
 /**
  * Returns an array of music videos for the user's top tracks on Spotify.
  */
-router.get("/getHome", (req, res) => {});
+router.get("/getTopTracks", (req, res) => {
+  const accessToken = req.query.accessToken;
+  const loggedInSpotifyApi = new SpotifyWebApi();
+  loggedInSpotifyApi.setAccessToken(accessToken);
+
+  loggedInSpotifyApi
+    .getMyTopTracks()
+    .then((data) => {
+      // once receiving the user's recently played tracks
+      // create queries for each of them and call the search for the Youtube API
+      var topTracks = [];
+      data.body.items.forEach((track) => {
+        // don't add duplicate tracks
+        topTracks = parseSpotifyResponse(track, topTracks, true, "artists");
+      });
+      convertToYoutubeAndSend(topTracks, res);
+    })
+    .catch((err) => console.error(err));
+});
 
 // -----------------------------------------------------------UTILITIES-----------------------------------------------------------
 
@@ -353,7 +372,7 @@ class MusicVideo {
 function convertToYoutubeAndSend(spotifyTracks, responseObj) {
   // an array of Youtube Data API search promises for each of the recently played tracks
   var requests = spotifyTracks.map((search) =>
-    youtubeApi.searchAll(search.query, 5)
+    youtubeApi.searchAll(search.query, 3)
   );
 
   // returns when all promises in 'requests' are resolved into 'responses'
