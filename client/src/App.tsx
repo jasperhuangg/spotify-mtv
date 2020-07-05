@@ -117,24 +117,21 @@ export default class App extends Component<{}, AppState> {
    */
   getAllLists() {
     Promise.all([
+      this.getTopTracks(),
       this.getRecentlyPlayed(),
       this.getPlaylists(),
       this.getTopArtists(),
-      this.getTopTracks(),
     ]).then((responses) => {
       for (let i = 0; i < 3; i++) {
         const response: void | AxiosResponse = responses[i];
         if (typeof response === "object") {
-          if (i === 0) {
-            console.log(response.data);
-            this.setState({ recentlyPlayed: response.data });
-          } // response is recently played
-          if (i === 1) this.setState({ playlists: response.data }); // response is playlists
-          if (i === 2) this.setState({ topArtists: response.data }); // response is topArtists
-          if (i === 3) {
-            this.setState({ topTracks: response.data });
-            console.log(response.data);
-          }
+          if (i === 0) this.setState({ topTracks: response.data });
+          // if (i === 1) {
+          //   console.log(response.data);
+          //   this.setState({ recentlyPlayed: response.data });
+          // } // response is recently played
+          // if (i === 2) this.setState({ playlists: response.data }); // response is playlists
+          // if (i === 3) this.setState({ topArtists: response.data }); // response is topArtists
         }
       }
       this.setState({ listsLoaded: true }); // we can get rid of loading displays
@@ -307,7 +304,12 @@ export default class App extends Component<{}, AppState> {
 
       return (
         <>
-          <div className="container-fluid p-0">
+          <div
+            className="container-fluid p-0"
+            // style={{
+            //   height: "100vh",
+            // }}
+          >
             {/*----------------------------------------------------test buttons--------------------------------------------------*/}
 
             {/* <div id="test-buttons" className="text-center m-5">

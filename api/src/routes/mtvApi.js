@@ -1,3 +1,9 @@
+/**
+ * TODO:
+ * 1. Split up recently played into two calls (one for Track objects, another for MusicVideo objects).
+ * 2. Store info for tracks into a database, only call Youtube API for tracks that differ from the database.
+ */
+
 const express = require("express");
 const router = express.Router();
 const SpotifyWebApi = require("spotify-web-api-node");
@@ -13,8 +19,9 @@ const spotify_client_secret = "c71e49ea792e4dc69b0e4f8cee46903e";
 // const youtube_api_key = "AIzaSyBV0KCBnG8H3QRUq6SN1R1YAZXyfg8vnGA";
 // const youtube_api_key = "AIzaSyCAmAAMTILENjy9jpwAfHwbGYvQJAY7ul4";
 // const youtube_api_key = "AIzaSyDkYL0oxWH81vp0ZzcIDgV4NaYGKO9sL10";
-// const youtube_api_key = "AIzaSyAdtBLs2ZSHNYKwS5UXdOpivz7eUue8TJg";
-const youtube_api_key = "AIzaSyDBZFBS57klOseen5DIq9Ei062M4aY17Kc";
+const youtube_api_key = "AIzaSyAdtBLs2ZSHNYKwS5UXdOpivz7eUue8TJg";
+// const youtube_api_key = "AIzaSyDBZFBS57klOseen5DIq9Ei062M4aY17Kc";
+// const youtube_api_key = "AIzaSyBkniCc0VE-LNEQSZe9-m3RRoaQy0K_G5s";
 
 const youtubeApi = new YoutubeDataAPI(youtube_api_key);
 
@@ -257,7 +264,9 @@ router.get("/getTopTracks", (req, res) => {
   loggedInSpotifyApi.setAccessToken(accessToken);
 
   loggedInSpotifyApi
-    .getMyTopTracks()
+    .getMyTopTracks({
+      limit: 5,
+    })
     .then((data) => {
       // once receiving the user's recently played tracks
       // create queries for each of them and call the search for the Youtube API
@@ -295,7 +304,7 @@ function parseSpotifyResponse(
 
   for (let i = 0; i < track.artists.length; i++) {
     const artist = track.artists[i].name;
-    artists += i < track.artists.length - 1 ? artist + " " : artist;
+    artists += i < track.artists.length - 1 ? artist + ", " : artist;
   }
 
   const trackObj = {
@@ -331,7 +340,7 @@ class MusicVideo {
     this.album = album;
     this.id = youtubeAPIResult.items[0].id.videoId; // TODO: update with crowdsourcing idea (store ids that work/don't work for a spotify track)
     this.embedHTML = "";
-    this.thumbnailURI = youtubeAPIResult.items[0].snippet.thumbnails.medium.url;
+    this.thumbnailURI = youtubeAPIResult.items[0].snippet.thumbnails.high.url;
     /**
      * parse the api result to obtain thumbnailURI and videoURI
      */

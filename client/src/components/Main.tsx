@@ -29,37 +29,70 @@ export default class Main extends Component<MainProps, MainState> {
   }
 
   render() {
-    return (
-      <>
-        <div className="container-fluid pl-4">
-          <div
-            className="spotify-header-white pt-3 pb-3 mt-4 no-select"
-            style={{
-              fontSize: "30px",
-              backgroundColor: "rgba(24, 24, 24, 0.97)",
-              zIndex: 1000,
-              position: "sticky",
-              top: 70,
-            }}
-          >
-            {this.props.title}
-          </div>
-          <div className="d-flex justify-content-center">
-            <div className="row justify-content-sm-start justify-content-between">
-              {this.props.videos.map((video, index) => {
-                return (
-                  <div
-                    key={index}
-                    className="col-lg-3 col-md-4 col-sm-6 col-12 mb-4"
-                  >
-                    <VideoTile video={video} />
-                  </div>
-                );
-              })}
+    if (this.props.videos.length > 0) {
+      return (
+        <>
+          <div className="container-fluid pl-4">
+            <div
+              className="spotify-header-white pt-3 pb-3 mt-4 no-select"
+              style={{
+                fontSize: "30px",
+                backgroundColor: "rgba(24, 24, 24, 0.97)",
+                zIndex: 1000,
+                position: "sticky",
+                top: 70,
+              }}
+            >
+              {this.props.title}
+            </div>
+            <div className="d-flex justify-content-center">
+              <div className="row justify-content-sm-start justify-content-between">
+                {this.props.videos.map((video, index) => {
+                  return (
+                    <div
+                      key={index}
+                      className="col-lg-3 col-md-4 col-sm-6 col-12 mb-4"
+                    >
+                      <VideoTile video={video} />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      </>
-    );
+        </>
+      );
+    } else
+      return (
+        <>
+          <div className="container-fluid pl-4">
+            <div
+              className="spotify-header-white pt-3 pb-3 mt-4 no-select"
+              style={{
+                fontSize: "30px",
+                backgroundColor: "rgba(24, 24, 24, 0.97)",
+                zIndex: 1000,
+                position: "sticky",
+                top: 70,
+              }}
+            >
+              {this.props.title}
+            </div>
+            <div
+              className="d-flex justify-content-center align-items-center"
+              style={{
+                paddingTop: "20vh",
+              }}
+            >
+              <div className="lds-ellipsis">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
+            </div>
+          </div>
+        </>
+      );
   }
 }

@@ -26,25 +26,35 @@ export default function VideoTile({ video }: VideoTileProps) {
     <>
       <div className="video-tile-wrapper">
         <div className="d-flex justify-content-center">
-          <div
+          {/* <div
             className="thumbnail-wrapper"
             style={{
               width: "284.44px",
               height: "160px",
             }}
-          >
-            <img
-              className="thumbnail"
+          > */}
+          <div className="thumbnail-overlay d-flex align-items-center justify-content-center">
+            <i
+              className="fas fa-play-circle"
               style={{
-                width: "284.44px",
-                height: "160px",
+                fontSize: "50px",
+                color: "white",
               }}
-              src={video.thumbnailURI}
-              alt={video.title}
-            />
+            ></i>
           </div>
+          <img
+            className="thumbnail"
+            style={{
+              width: "284.44px",
+              height: "213.33px",
+              borderRadius: "7px",
+            }}
+            src={video.thumbnailURI}
+            alt={video.title}
+          />
         </div>
-        <div className="tile-info">
+        {/* </div> */}
+        <div className="tile-info mt-1">
           <div
             className="spotify-body-white tile-title no-select"
             style={{
