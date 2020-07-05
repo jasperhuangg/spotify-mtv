@@ -44,6 +44,7 @@ export default function Navbar({
               fontSize: "25px",
               cursor: "pointer",
               minWidth: "120px",
+              pointerEvents: listsLoaded ? "all" : "none",
             }}
           >
             <img
@@ -56,7 +57,7 @@ export default function Navbar({
           </div>
         </div>
         <div className="col-6 d-flex justify-content-center">
-          <SearchBar videos={videos} />
+          <SearchBar videos={videos} listsLoaded={listsLoaded} />
         </div>
         <div className="col-3"></div>
       </div>

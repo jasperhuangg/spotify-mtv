@@ -19,8 +19,8 @@ const spotify_client_secret = "c71e49ea792e4dc69b0e4f8cee46903e";
 // const youtube_api_key = "AIzaSyBV0KCBnG8H3QRUq6SN1R1YAZXyfg8vnGA";
 // const youtube_api_key = "AIzaSyCAmAAMTILENjy9jpwAfHwbGYvQJAY7ul4";
 // const youtube_api_key = "AIzaSyDkYL0oxWH81vp0ZzcIDgV4NaYGKO9sL10";
-const youtube_api_key = "AIzaSyAdtBLs2ZSHNYKwS5UXdOpivz7eUue8TJg";
-// const youtube_api_key = "AIzaSyDBZFBS57klOseen5DIq9Ei062M4aY17Kc";
+// const youtube_api_key = "AIzaSyAdtBLs2ZSHNYKwS5UXdOpivz7eUue8TJg";
+const youtube_api_key = "AIzaSyDBZFBS57klOseen5DIq9Ei062M4aY17Kc";
 // const youtube_api_key = "AIzaSyBkniCc0VE-LNEQSZe9-m3RRoaQy0K_G5s";
 
 const youtubeApi = new YoutubeDataAPI(youtube_api_key);

@@ -79,9 +79,11 @@ export default class Main extends Component<MainProps, MainState> {
               {this.props.title}
             </div>
             <div
-              className="d-flex justify-content-center align-items-center"
+              className="text-center no-select"
               style={{
-                paddingTop: "20vh",
+                paddingTop: "8%",
+                transform: "scale(1.5, 1.5)",
+                pointerEvents: "none",
               }}
             >
               <div className="lds-ellipsis">
@@ -90,6 +92,20 @@ export default class Main extends Component<MainProps, MainState> {
                 <div></div>
                 <div></div>
               </div>
+              {/* <br />
+              <div className="lds-ellipsis">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
+              <br />
+              <div className="lds-ellipsis">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div> */}
             </div>
           </div>
         </>

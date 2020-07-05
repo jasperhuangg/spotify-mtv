@@ -13,6 +13,7 @@ type SearchBarState = {
 
 type SearchBarProps = {
   videos: MusicVideo[];
+  listsLoaded: boolean;
 };
 
 export default class SearchBar extends Component<
@@ -31,6 +32,9 @@ export default class SearchBar extends Component<
           onChange={(e) =>
             this.setState({ searchInput: e.currentTarget.value })
           }
+          style={{
+            pointerEvents: this.props.listsLoaded ? "all" : "none",
+          }}
           placeholder="Search"
         />
         <SearchSuggestions
