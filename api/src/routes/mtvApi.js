@@ -9,6 +9,9 @@ const router = express.Router();
 const SpotifyWebApi = require("spotify-web-api-node");
 const { YoutubeDataAPI } = require("youtube-v3-api");
 const axios = require("axios");
+const MongoClient = require("mongodb").MongoClient;
+const uri =
+  "mongodb+srv://dbUser:PAAOhYhfXViB9Our@cluster0.ywmbe.azure.mongodb.net/<dbname>?retryWrites=true&w=majority";
 
 // import MusicVideo from "../util/MusicVideo";
 
@@ -20,8 +23,11 @@ const spotify_client_secret = "c71e49ea792e4dc69b0e4f8cee46903e";
 // const youtube_api_key = "AIzaSyCAmAAMTILENjy9jpwAfHwbGYvQJAY7ul4";
 // const youtube_api_key = "AIzaSyDkYL0oxWH81vp0ZzcIDgV4NaYGKO9sL10";
 // const youtube_api_key = "AIzaSyAdtBLs2ZSHNYKwS5UXdOpivz7eUue8TJg";
-const youtube_api_key = "AIzaSyDBZFBS57klOseen5DIq9Ei062M4aY17Kc";
+// const youtube_api_key = "AIzaSyDBZFBS57klOseen5DIq9Ei062M4aY17Kc";
 // const youtube_api_key = "AIzaSyBkniCc0VE-LNEQSZe9-m3RRoaQy0K_G5s";
+
+const youtube_api_key = "AIzaSyB_Ii1GbXiUXSv-IBAxkfPAq8SxIkKgIjQ";
+// const youtube_api_key = "AIzaSyDyos8cNQ2L4hEuvzxqvZQ_nZAP-tuWB0A";
 
 const youtubeApi = new YoutubeDataAPI(youtube_api_key);
 
@@ -308,6 +314,7 @@ function parseSpotifyResponse(
   }
 
   const trackObj = {
+    id: track.id,
     title: track.name,
     artist: artists,
     album: track.album.name,
@@ -379,52 +386,111 @@ class MusicVideo {
  * @param   {[type]}  responseObj    The response for the route calling the function
  */
 function convertToYoutubeAndSend(spotifyTracks, responseObj) {
-  // an array of Youtube Data API search promises for each of the recently played tracks
-  var requests = spotifyTracks.map((search) =>
-    youtubeApi.searchAll(search.query, 3)
+  /**
+   * TODO: MongoDB integration (kind of as a permanent cache) to reduce calls to Youtube Data PI
+   * - Each document in DB will have Spotify Track ID and a MusicVideo object
+   * - Make requests to the database first and obtain music video object based on Spotify track ID
+   * - For track that doesn't exist in the database (DB call returned 0 results)
+   *    - Call the Youtube search endpoint and obtain the necessary data
+   *    - Add the data to the database
+   */
+
+  MongoClient.connect(
+    uri,
+    { useUnifiedTopology: true, useNewUrlParser: true },
+    (err, db) => {
+      if (err) throw err;
+
+      var dbo = db.db("Spotify_MTV");
+
+      const collection = dbo.collection("Test"); // SpotifyTracks_MusicVideos
+      var spotifyTrackIDs = [];
+      for (let i = 0; i < spotifyTracks.length; i++)
+        spotifyTrackIDs.push(spotifyTracks[i].id);
+
+      spotifyTrackIDs = ["1", "3", "5", "6"];
+
+      collection.find(
+        { SpotifyTrackID: { $in: spotifyTrackIDs } },
+        (err, cursor) => {
+          if (err) throw err;
+          cursor.toArray((err, data) => {
+            if (err) throw err;
+            // data is an array containing a SpotifyTrackID and the corresponding MusicVideo object at each index
+            const presentInArr = getAbsentParallelArray(spotifyTracks, data); // used to determine which tracks to call Youtube API on
+          });
+        }
+      );
+    }
   );
 
-  // returns when all promises in 'requests' are resolved into 'responses'
-  Promise.all(requests)
-    .then((responses) => {
-      var musicVideos = [];
-      var youtubePlayerPromises = [];
-      var counter = 0;
-      responses.forEach((response) => {
-        var spotifyTrackObj = spotifyTracks[counter];
+  // // an array of Youtube Data API search promises for each of the recently played tracks
+  // var requests = spotifyTracks.map((search) =>
+  //   youtubeApi.searchAll(search.query, 3)
+  // );
 
-        counter++;
-        // parse each response into a MusicVideo object
-        // need to call Youtube Data API a second time to retrieve the player information using its ID
-        var musicVideo = new MusicVideo(
-          spotifyTrackObj.title,
-          spotifyTrackObj.artist,
-          spotifyTrackObj.album,
-          response
-        );
-        var youtubePlayerPromise = musicVideo.getPlayerSearchPromise();
-        musicVideos.push(musicVideo);
-        youtubePlayerPromises.push(youtubePlayerPromise);
-      });
-      Promise.all(youtubePlayerPromises)
-        .then((youtubePlayerResponses) => {
-          counter = 0;
-          youtubePlayerResponses.forEach((playerResponse) => {
-            const playerEmbedHTML =
-              playerResponse.data.items[0].player.embedHtml;
-            musicVideos[counter].embedHTML = playerEmbedHTML;
-            counter++;
-          });
+  // // returns when all promises in 'requests' are resolved into 'responses'
+  // Promise.all(requests)
+  //   .then((responses) => {
+  //     var musicVideos = [];
+  //     var youtubePlayerPromises = [];
+  //     var counter = 0;
+  //     responses.forEach((response) => {
+  //       var spotifyTrackObj = spotifyTracks[counter];
 
-          responseObj.send(musicVideos);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+  //       counter++;
+  //       // parse each response into a MusicVideo object
+  //       // need to call Youtube Data API a second time to retrieve the player information using its ID
+  //       var musicVideo = new MusicVideo(
+  //         spotifyTrackObj.title,
+  //         spotifyTrackObj.artist,
+  //         spotifyTrackObj.album,
+  //         response
+  //       );
+  //       var youtubePlayerPromise = musicVideo.getPlayerSearchPromise();
+  //       musicVideos.push(musicVideo);
+  //       youtubePlayerPromises.push(youtubePlayerPromise);
+  //     });
+  //     Promise.all(youtubePlayerPromises)
+  //       .then((youtubePlayerResponses) => {
+  //         counter = 0;
+  //         youtubePlayerResponses.forEach((playerResponse) => {
+  //           const playerEmbedHTML =
+  //             playerResponse.data.items[0].player.embedHtml;
+  //           musicVideos[counter].embedHTML = playerEmbedHTML;
+  //           counter++;
+  //         });
+
+  //         responseObj.send(musicVideos);
+  //       })
+  //       .catch((err) => {
+  //         console.error(err);
+  //       });
+  //   })
+  //   .catch((err) => {
+  //     console.error(err);
+  //   });
+}
+
+/**
+ * Returns an array of booleans parallel to spotifyTracks indicating if the track was included in mongoResponse
+ */
+function getAbsentParallelArray(spotifyTracks, mongoResponse) {
+  var res = [];
+  for (let i = 0; i < spotifyTracks.length; i++) {
+    const trackID = spotifyTracks[i].id;
+    const found = false;
+    for (let j = 0; j < mongoResponse.length; j++) {
+      const responseTrackID = mongoResponse[j].SpotifyTrackID;
+      if (trackID === responseTrackID) {
+        found = true;
+        break;
+      }
+    }
+    res[i] = found;
+  }
+
+  return res;
 }
 
 module.exports = router;

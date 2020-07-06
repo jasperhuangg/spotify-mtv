@@ -118,11 +118,11 @@ export default class App extends Component<{}, AppState> {
   getAllLists() {
     Promise.all([
       this.getTopTracks(),
-      this.getRecentlyPlayed(),
-      this.getPlaylists(),
-      this.getTopArtists(),
+      // this.getRecentlyPlayed(),
+      // this.getPlaylists(),
+      // this.getTopArtists(),
     ]).then((responses) => {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         const response: void | AxiosResponse = responses[i];
         if (typeof response === "object") {
           if (i === 0) this.setState({ topTracks: response.data });
@@ -304,12 +304,7 @@ export default class App extends Component<{}, AppState> {
 
       return (
         <>
-          <div
-            className="container-fluid p-0"
-            // style={{
-            //   height: "100vh",
-            // }}
-          >
+          <div className="container-fluid p-0">
             {/*----------------------------------------------------test buttons--------------------------------------------------*/}
 
             {/* <div id="test-buttons" className="text-center m-5">
