@@ -118,20 +118,20 @@ export default class App extends Component<{}, AppState> {
   getAllLists() {
     Promise.all([
       this.getTopTracks(),
-      // this.getRecentlyPlayed(),
-      // this.getPlaylists(),
-      // this.getTopArtists(),
+      this.getRecentlyPlayed(),
+      this.getPlaylists(),
+      this.getTopArtists(),
     ]).then((responses) => {
       for (let i = 0; i < 4; i++) {
         const response: void | AxiosResponse = responses[i];
         if (typeof response === "object") {
           if (i === 0) this.setState({ topTracks: response.data });
-          // if (i === 1) {
-          //   console.log(response.data);
-          //   this.setState({ recentlyPlayed: response.data });
-          // } // response is recently played
-          // if (i === 2) this.setState({ playlists: response.data }); // response is playlists
-          // if (i === 3) this.setState({ topArtists: response.data }); // response is topArtists
+          if (i === 1) {
+            console.log(response.data);
+            this.setState({ recentlyPlayed: response.data });
+          } // response is recently played
+          if (i === 2) this.setState({ playlists: response.data }); // response is playlists
+          if (i === 3) this.setState({ topArtists: response.data }); // response is topArtists
         }
       }
       this.setState({ listsLoaded: true }); // we can get rid of loading displays
@@ -194,6 +194,7 @@ export default class App extends Component<{}, AppState> {
    * Gets all of the music videos and updates state for playlist with ```id```.
    */
   getPlaylistVideos(id: string) {
+    console.log("calling get playlist videos");
     const url = domain + "/mtvApi/getVideosFromTracks";
 
     var playlists: {
@@ -284,50 +285,51 @@ export default class App extends Component<{}, AppState> {
   }
 
   render() {
+    console.log("render called");
     // user has logged in, show the app
     if (this.state.accessToken.length) {
       // get the list of music videos for the current screen
       var musicVideos: MusicVideo[] = [];
+      var displayTitle: string = "";
 
-      if (this.state.currentScreen.type === "Home")
+      if (this.state.currentScreen.type === "Home") {
         musicVideos = this.state.topTracks;
-      if (this.state.currentScreen.type === "Recently Played")
+        displayTitle = "Home";
+      }
+      if (this.state.currentScreen.type === "Recently Played") {
         musicVideos = this.state.recentlyPlayed;
-      if (this.state.currentScreen.type === "Playlist")
-        musicVideos = this.state.playlists[this.state.currentScreen.name]
-          .musicVideos;
-      if (this.state.currentScreen.type === "Artist")
-        musicVideos = this.state.topArtists[this.state.currentScreen.name]
-          .musicVideos;
-
-      console.log(musicVideos);
+        displayTitle = "Recently Played";
+      }
+      if (this.state.currentScreen.type === "Playlist") {
+        if (
+          this.state.playlists[this.state.currentScreen.name].musicVideos
+            .length === 0
+        )
+          this.getPlaylistVideos(this.state.currentScreen.name);
+        else {
+          musicVideos = this.state.playlists[this.state.currentScreen.name]
+            .musicVideos;
+          displayTitle = this.state.playlists[this.state.currentScreen.name]
+            .name;
+        }
+      }
+      if (this.state.currentScreen.type === "Artist") {
+        if (
+          this.state.topArtists[this.state.currentScreen.name].musicVideos
+            .length === 0
+        )
+          this.getArtistVideos(this.state.currentScreen.name);
+        else {
+          musicVideos = this.state.topArtists[this.state.currentScreen.name]
+            .musicVideos;
+          displayTitle = this.state.topArtists[this.state.currentScreen.name]
+            .name;
+        }
+      }
 
       return (
         <>
           <div className="container-fluid p-0">
-            {/*----------------------------------------------------test buttons--------------------------------------------------*/}
-
-            {/* <div id="test-buttons" className="text-center m-5">
-              <button
-                className="btn spotify-button-green"
-                onClick={() => this.getTopArtists()}
-              >
-                GET TOP ARTISTS
-              </button>
-              <br />
-              <br />
-              <button
-                className="btn spotify-button-green"
-                onClick={() =>
-                  this.getArtistVideos(Object.keys(this.state.topArtists)[0])
-                }
-              >
-                GET ARTIST VIDEOS
-              </button>
-            </div> */}
-
-            {/*-------------------------------------------------------------------------------------------------------------------*/}
-
             <Navbar
               videos={[]}
               toggleSidebar={() => this.toggleSidebar()}
@@ -345,7 +347,7 @@ export default class App extends Component<{}, AppState> {
               ) => this.selectSidebarItem(title, type, itemID)}
             />
             <OverlayShadow displaying={this.state.sidebarShowing} />
-            <Main title={this.state.currentScreen.name} videos={musicVideos} />
+            <Main title={displayTitle} videos={musicVideos} />
           </div>
         </>
       );

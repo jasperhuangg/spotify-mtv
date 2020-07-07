@@ -53,7 +53,10 @@ export default class Main extends Component<MainProps, MainState> {
                       key={index}
                       className="col-lg-3 col-md-4 col-sm-6 col-12 mb-4"
                     >
-                      <VideoTile video={video} />
+                      <VideoTile
+                        video={video}
+                        data-embedHTML={video.embedHTML}
+                      />
                     </div>
                   );
                 })}
@@ -92,20 +95,6 @@ export default class Main extends Component<MainProps, MainState> {
                 <div></div>
                 <div></div>
               </div>
-              {/* <br />
-              <div className="lds-ellipsis">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-              </div>
-              <br />
-              <div className="lds-ellipsis">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-              </div> */}
             </div>
           </div>
         </>
